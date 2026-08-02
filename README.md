@@ -54,21 +54,38 @@ CamGenerator ──(mailbox: gen_to_drv)──> CamDriver ──> DUT (cam) ─�
 
 - **`top_tb`** — Top-level testbench module: instantiates the `cambus` interface and the `cam` DUT, generates the clock, dumps waveforms (`dump.vcd`), and kicks off `CamTest`.
 
+## Simulator Compatibility
+
+This testbench relies on SystemVerilog OOP constructs — classes, mailboxes, and `randomize()`/constraints — which require a simulator with full SystemVerilog (IEEE 1800) support:
+
+- **Questa/ModelSim, VCS, Xcelium** — full support, recommended.
+- **Vivado Simulator (XSIM)** — supports classes, mailboxes, and randomization; confirmed working for this testbench.
+- **Verilator** — partial/growing support for SV classes; may work depending on version, but not guaranteed for mailboxes.
+- **Icarus Verilog** — does **not** support classes, mailboxes, or `randomize()`. It will fail to compile this testbench as-is. Icarus can still be used to compile/elaborate the DUT (`cam` + `cambus`) on its own, or with a simplified procedural (non-class-based) testbench.
+
 ## Running the Simulation
 
-Example using Icarus Verilog:
+Tested with **Vivado Simulator (XSIM)**:
 
 ```bash
-iverilog -g2012 -o cam_sim cam.sv cam_tb.sv
-vvp cam_sim
+xvlog -sv Sim/*.sv Src/*.sv
+xelab top_tb -s top_sim
+xsim top_sim -runall
 ```
 
-Or with a commercial simulator (VCS, Questa, Xcelium), compile and elaborate `top_tb` as the top module.
-
-Waveforms are dumped to `dump.vcd` and can be viewed with GTKWave:
+Or with Questa/VCS/Xcelium:
 
 ```bash
-gtkwave dump.vcd
+vlog Sim/*.sv Src/*.sv
+vsim -c top_tb -do "run -all"
+```
+
+(Substitute your simulator's equivalent compile/elaborate/run commands as needed.)
+
+Waveforms are dumped to `dump.vcd` in `result/` and can be viewed with GTKWave:
+
+```bash
+gtkwave result/dump.vcd
 ```
 
 ## Sample Output
@@ -91,9 +108,9 @@ Any mismatch between the DUT's `emp` output and the scoreboard's expected value 
 
 ```
 .
-├── Sim          # DUT + cambus interface
-├── Src        # Testbench classes + top_tb module
-├── result    # Waveform
+├── Sim/          # DUT + cambus interface
+├── Src/          # Testbench classes + top_tb module
+├── result/       # Waveform dumps (dump.vcd)
 └── README.md
 ```
 
