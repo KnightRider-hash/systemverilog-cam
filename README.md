@@ -91,8 +91,9 @@ Any mismatch between the DUT's `emp` output and the scoreboard's expected value 
 
 ```
 .
-├── cam.sv          # DUT + cambus interface
-├── cam_tb.sv        # Testbench classes + top_tb module
+├── Sim          # DUT + cambus interface
+├── Src        # Testbench classes + top_tb module
+├── result    # Waveform
 └── README.md
 ```
 
